@@ -1,0 +1,2 @@
+def MinFinder(array):
+    pass
