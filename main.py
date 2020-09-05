@@ -1,39 +1,50 @@
-import csv
 from timeit import default_timer as timer
 import datetime
-import NumberFactory
-from MinFinder import MinFinder
+import csv
 
-TESTLENGTHS = [10, 100, 1000, 10000, 100000]
+from MinFinder import MinFinder
+import NumberFactory
+
+TESTLENGTHS = [10, 100, 1000, 2000, 4000, 8000]
 
 def StartMinFinderTests():
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    WriteResultLine([timestamp])
+    WriteResultLine([timestamp, "5 iterations per array length"])
+    runs = 5
+    WriteResultLine(["~"*15])
 
     for l in TESTLENGTHS:
-        MeasureMinFinder(l, 2)
+        print("Starting measurement for length " + str(l) + " with random array...")
+        avgTime = MeasureMinFinder(NumberFactory.GetUnsortedSet, l, runs)
+        print("Average time needed with {0} elements: {1} s ({2} runs)".format(l, avgTime, runs))
+        WriteResultLine(["random", runs, l, avgTime])
+    WriteResultLine(["~"*15])
+
+    for l in TESTLENGTHS:
+        print("Starting measurement for length " + str(l) + " with sorted array...")
+        avgTime = MeasureMinFinder(NumberFactory.GetSortedSet, l, runs)
+        print("Average time needed with {0} elements: {1} s ({2} runs)".format(l, avgTime, runs))
+        WriteResultLine(["sorted", runs, l, avgTime])
+    WriteResultLine(["~"*15])
+
+    for l in TESTLENGTHS:
+        print("Starting measurement for length " + str(l) + " with reverse sorted array...")
+        avgTime = MeasureMinFinder(NumberFactory.GetReverseSortedSet, l, runs)
+        print("Average time needed with {0} elements: {1} s ({2} runs)".format(l, avgTime, runs))
+        WriteResultLine(["reverse sorted", runs, l, avgTime])
+    WriteResultLine(["~"*15])
 
     WriteResultLine(["-"*30])
 
-
-def MeasureMinFinder(arrayLength, runCount):
-    print("Starting measurement for length " + str(arrayLength) + "...")
+def MeasureMinFinder(arrayGenerator, arrayLength, runCount):
     timesum = 0
-    
     for i in range(runCount):
-        print("run " + str(i+1), end = "...")
-        unsortedArray = NumberFactory.GetUnsortedSet(arrayLength)
+        arr = arrayGenerator(arrayLength)
         start = timer()
-        sortedArray = MinFinder(unsortedArray)
+        sortedArray = MinFinder(arr)
         end = timer()
-        timesum += (end-start) # add current iteration to sum
-    print("")
-
-    average = timesum / runCount
-    print("Average time needed for {0} iterations with length {1}: {2}".format(10, arrayLength, average))
-    print("-"*30)
-    WriteResultLine([arrayLength, average])
-    
+        timesum += (end-start)
+    return (timesum / runCount)
 
 def WriteResultLine(line):
     with open("results.csv", "a+", newline="") as csvfile:
